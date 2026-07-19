@@ -2,19 +2,19 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createHomeOutput } from "../src/cli.js";
-import { SKILL_DESCRIPTION, createSkillMarkdown } from "../src/skill.js";
+import { INVOKE, SKILL_DESCRIPTION, createSkillMarkdown } from "../src/skill.js";
 
 function skillCommandText(text) {
-  return text.replaceAll("`lavish-axi", "`npx -y lavish-axi");
+  return text.replaceAll("`ai-dev-axi", `\`${INVOKE}`);
 }
 
-test("createSkillMarkdown emits valid frontmatter naming the lavish skill", () => {
+test("createSkillMarkdown emits valid frontmatter naming the ai-dev skill", () => {
   const md = createSkillMarkdown();
   assert.ok(md.startsWith("---\n"), "starts with frontmatter fence");
   const end = md.indexOf("\n---\n", 4);
   assert.ok(end > 0, "frontmatter is closed");
   const frontmatter = md.slice(4, end);
-  assert.match(frontmatter, /^name: lavish$/m);
+  assert.match(frontmatter, /^name: ai-dev$/m);
   assert.match(frontmatter, /^description: /m);
   assert.match(frontmatter, /^argument-hint: /m);
   assert.ok(frontmatter.includes(SKILL_DESCRIPTION), "frontmatter carries the skill description");
@@ -39,7 +39,7 @@ test("createSkillMarkdown handles explicit /lavish invocation arguments", () => 
 
 test("createSkillMarkdown mirrors the no-args home output", () => {
   const md = createSkillMarkdown();
-  const home = createHomeOutput({ bin: "lavish-axi", sessions: [], includeSessions: false, agent: "static" });
+  const home = createHomeOutput({ bin: "ai-dev-axi", sessions: [], includeSessions: false, agent: "static" });
 
   assert.ok(md.includes(skillCommandText(home.description)), "includes the product description");
 
@@ -104,11 +104,11 @@ test("createSkillMarkdown omits setup hooks guidance", () => {
 test("createSkillMarkdown uses non-interactive npx commands", () => {
   const md = createSkillMarkdown();
 
-  assert.match(md, /`npx -y lavish-axi <html-file>`/);
-  assert.match(md, /If lavish-axi output shows a follow-up command starting with `lavish-axi`/);
-  assert.match(md, /run it as `npx -y lavish-axi/);
-  assert.doesNotMatch(md, /`npx lavish-axi/);
-  assert.doesNotMatch(md, /Run `lavish-axi/);
+  assert.ok(md.includes(`\`${INVOKE} <html-file>\``));
+  assert.match(md, /If ai-dev-axi output shows a follow-up command starting with `ai-dev-axi`/);
+  assert.ok(md.includes(`run it as \`${INVOKE}`));
+  assert.doesNotMatch(md, /`npx ai-dev-axi/);
+  assert.doesNotMatch(md, /Run `ai-dev-axi/);
 });
 
 test("createSkillMarkdown documents installed-copy fallback for restricted sandboxes", () => {
@@ -116,7 +116,7 @@ test("createSkillMarkdown documents installed-copy fallback for restricted sandb
 
   assert.match(md, /restricted subprocess sandboxes/);
   assert.match(md, /status 216/);
-  assert.match(md, /`node "\$\(npm root\)\/lavish-axi\/dist\/cli\.mjs" <html-file>`/);
-  assert.match(md, /`node "\$\(npm root -g\)\/lavish-axi\/dist\/cli\.mjs" <html-file>`/);
-  assert.match(md, /bare `lavish-axi <html-file>` bin/);
+  assert.match(md, /`node "\$\(npm root\)\/ai-dev-axi\/dist\/cli\.mjs" <html-file>`/);
+  assert.match(md, /`node "\$\(npm root -g\)\/ai-dev-axi\/dist\/cli\.mjs" <html-file>`/);
+  assert.match(md, /bare `ai-dev-axi <html-file>` bin/);
 });

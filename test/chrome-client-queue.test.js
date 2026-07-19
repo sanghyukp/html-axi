@@ -272,7 +272,7 @@ async function createChromeHarness({
       return event;
     },
     queued() {
-      return JSON.parse(storage.get("lavish-axi:queued:abc") || "[]");
+      return JSON.parse(storage.get("ai-dev-axi:queued:abc") || "[]");
     },
     reloadCount() {
       return reloadCount;

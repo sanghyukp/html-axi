@@ -55,7 +55,7 @@ test(
     };
 
     function openArtifact(file) {
-      const output = run(process.execPath, ["bin/lavish-axi.js", file, "--no-open"], lavishEnv);
+      const output = run(process.execPath, ["bin/ai-dev-axi.js", file, "--no-open"], lavishEnv);
       const url = output.match(/url:\s*"([^"]+)"/)?.[1];
       assert.ok(url, output);
       return { file, url };
@@ -79,12 +79,12 @@ test(
         chromeEnv,
       );
       const pollTimeout = expectedCount === 0 ? "500" : "8000";
-      let poll = run(process.execPath, ["bin/lavish-axi.js", "poll", file, "--timeout-ms", pollTimeout], lavishEnv);
+      let poll = run(process.execPath, ["bin/ai-dev-axi.js", "poll", file, "--timeout-ms", pollTimeout], lavishEnv);
       const expectedWarnings = new RegExp(`layout_warnings\\[${expectedCount}\\]`);
       if (expectedCount > 0 && !expectedWarnings.test(poll)) {
         run("chrome-devtools-axi", ["open", url], chromeEnv);
         run("chrome-devtools-axi", ["wait", String(settleMs)], chromeEnv, settleMs + 45_000);
-        poll = run(process.execPath, ["bin/lavish-axi.js", "poll", file, "--timeout-ms", pollTimeout], lavishEnv);
+        poll = run(process.execPath, ["bin/ai-dev-axi.js", "poll", file, "--timeout-ms", pollTimeout], lavishEnv);
       }
 
       if (expectedCount === 0) {
@@ -142,7 +142,7 @@ test(
       );
       assert.match(held, /true/);
       assert.match(
-        run(process.execPath, ["bin/lavish-axi.js", "poll", revalidationFile, "--timeout-ms", "8000"], lavishEnv),
+        run(process.execPath, ["bin/ai-dev-axi.js", "poll", revalidationFile, "--timeout-ms", "8000"], lavishEnv),
         /layout_warnings\[3\]/,
       );
       await writeFile(
@@ -161,7 +161,7 @@ test(
       assert.match(repaired, /gate.*false/);
       assert.match(repaired, /bannerHidden.*true/);
     } finally {
-      run(process.execPath, ["bin/lavish-axi.js", "stop", "--port", String(port)], lavishEnv, 15_000);
+      run(process.execPath, ["bin/ai-dev-axi.js", "stop", "--port", String(port)], lavishEnv, 15_000);
       run("chrome-devtools-axi", ["stop"], chromeEnv);
       await rm(temp, { recursive: true, force: true });
     }

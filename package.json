@@ -1,15 +1,15 @@
 {
-  "name": "lavish-axi",
+  "name": "ai-dev-axi",
   "version": "0.1.42",
   "packageManager": "pnpm@11.1.1",
-  "description": "HTML is the new markdown. Lavish is the new editor for your HTML artifacts.",
+  "description": "HTML is the new markdown. AI-DEV is the new editor for your HTML artifacts.",
   "type": "module",
   "bin": {
-    "lavish-axi": "dist/cli.mjs"
+    "ai-dev-axi": "dist/cli.mjs"
   },
   "files": [
     "dist",
-    "skills/lavish",
+    "skills/ai-dev",
     "lavish-editor-marketing/renders/lavish-editor-marketing.gif",
     "LICENSE",
     "THIRD-PARTY-NOTICES.md",
@@ -66,12 +66,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kunchenguid/lavish-axi.git"
+    "url": "git+https://github.com/sanghyukp/html-axi.git"
   },
   "bugs": {
-    "url": "https://github.com/kunchenguid/lavish-axi/issues"
+    "url": "https://github.com/sanghyukp/html-axi/issues"
   },
-  "homepage": "https://github.com/kunchenguid/lavish-axi#readme",
+  "homepage": "https://github.com/sanghyukp/html-axi#readme",
   "publishConfig": {
     "access": "public"
   }

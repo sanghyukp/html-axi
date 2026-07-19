@@ -1,5 +1,5 @@
 // Hosted sharing transport: publish a self-contained HTML page to ht-ml.app
-// (https://ht-ml.app), a third-party hosting service not part of Lavish, and return a visitable
+// (https://ht-ml.app), a third-party hosting service not part of AI-DEV, and return a visitable
 // share URL. Creation needs no account or API key - `POST /v1/sites` sends the HTML to
 // ht-ml.app's servers with an optional password, then returns a `url` plus a secret
 // `update_key` (the only credential, returned once, used later to update or delete the page).
@@ -38,7 +38,7 @@ export async function publishToHtmlApp(html, options = {}) {
   const fetchImpl = options.fetch || fetch;
   const token = optionalString(options.token ?? env.LAVISH_AXI_HTML_APP_TOKEN);
 
-  const headers = { "content-type": "application/json", "user-agent": "lavish-axi" };
+  const headers = { "content-type": "application/json", "user-agent": "ai-dev-axi" };
   if (token) headers.authorization = `Bearer ${token}`;
 
   const controller = new AbortController();

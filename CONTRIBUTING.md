@@ -16,9 +16,9 @@ The release and dependency bots are exempt so their automation keeps working, bu
 
 Fork routing requires `no-mistakes` v1.30.1 or newer.
 
-1. Fork the repo, then clone the parent repo or set your local `origin` back to the parent repo (`git@github.com:kunchenguid/lavish-axi.git`).
+1. Fork the repo, then clone the parent repo or set your local `origin` back to the parent repo (`git@github.com:sanghyukp/html-axi.git`).
 2. Create a branch and make your changes.
-3. Initialize or refresh the gate with your fork as the push target: `no-mistakes init --fork-url git@github.com:<you>/lavish-axi.git`.
+3. Initialize or refresh the gate with your fork as the push target: `no-mistakes init --fork-url git@github.com:<you>/html-axi.git`.
 4. Commit your changes.
 5. Push through the gate instead of pushing to `origin`:
 
