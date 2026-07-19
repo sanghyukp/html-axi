@@ -50,12 +50,19 @@ SOFTWARE.
 
 The Xiaolai family (CJK glyphs) is intentionally not vendored; Excalidraw falls back to its CDN or the system font for those glyphs.
 
-## Bundled into `dist/design/` (pre-existing)
+## Vendored in `assets/design/`, copied to `dist/design/`
 
-| Asset                                             | License |
-| ------------------------------------------------- | ------- |
-| `daisyui.css`, `daisyui-themes.css` (daisyUI)     | MIT     |
-| `tailwindcss-browser.js` (`@tailwindcss/browser`) | MIT     |
+Downloaded verbatim from the jsdelivr CDN at the versions the design snippets advertise, so a
+browser that cannot reach the CDN loads the identical bytes from the local server instead.
+
+| Asset                                             | License | Version |
+| ------------------------------------------------- | ------- | ------- |
+| `daisyui.css`, `daisyui-themes.css` (daisyUI)     | MIT     | 5.5.19  |
+| `tailwindcss-browser.js` (`@tailwindcss/browser`) | MIT     | 4.2.4   |
+| `mermaid.js` (mermaid, UMD bundle)                | MIT     | 11.15.0 |
+
+The artifact-facing `mermaid.js` above is deliberately a different release from the exact 11.12.1
+the whiteboard converter bundles; the converter degrades on newer Mermaid, artifacts do not.
 
 ## Pre-publication audit note
 

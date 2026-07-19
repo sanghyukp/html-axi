@@ -1,10 +1,12 @@
 dist
 node_modules
-.lavish
-.lavish-axi
+.ai-dev
 .no-mistakes
 lavish-code-review.html
 package-lock.json
 CHANGELOG.md
 .agents
 .claude/settings.local.json
+
+# Vendored CDN bundles - byte-identical upstream copies, never reformat
+assets/design/

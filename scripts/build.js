@@ -2,6 +2,8 @@ import { chmod, copyFile, cp, mkdir, readFile } from "node:fs/promises";
 
 import * as esbuild from "esbuild";
 
+import { DESIGN_LOCAL_ASSET_FILES } from "../src/design-reference.js";
+
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
 
 await mkdir("dist", { recursive: true });
@@ -25,12 +27,12 @@ await chmod("dist/cli.mjs", 0o755);
 await copyFile("src/chrome-client.js", "dist/chrome-client.js");
 await copyFile("src/chrome.css", "dist/chrome.css");
 await mkdir("dist/design", { recursive: true });
-await copyFile("node_modules/daisyui/daisyui.css", "dist/design/daisyui.css");
-await copyFile("node_modules/daisyui/themes.css", "dist/design/daisyui-themes.css");
-await copyFile("node_modules/@tailwindcss/browser/dist/index.global.js", "dist/design/tailwindcss-browser.js");
-// The UMD bundle, not the ESM one: mermaid.esm.min.mjs pulls in ~150 sibling chunk files,
-// while mermaid.min.js is self-contained and can be copied next to an artifact.
-await copyFile("node_modules/mermaid/dist/mermaid.min.js", "dist/design/mermaid.js");
+// Vendored from the CDN under assets/design rather than pulled from node_modules, so what the
+// browser loads locally is byte-for-byte what the CDN snippet would have served. It also
+// decouples the artifact-facing Mermaid from the older release the whiteboard converter pins.
+for (const asset of DESIGN_LOCAL_ASSET_FILES) {
+  await copyFile(`assets/design/${asset}`, `dist/design/${asset}`);
+}
 
 // Whiteboard frame: a self-contained browser bundle (Excalidraw + the Mermaid
 // converter + its exactly-pinned mermaid + React) served from

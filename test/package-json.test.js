@@ -2,6 +2,13 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+import {
+  DESIGN_LOCAL_ASSET_FILES,
+  MERMAID_LOCAL_ASSET_FILE,
+  MERMAID_VERSION,
+  TAILWIND_BROWSER_VERSION,
+} from "../src/design-reference.js";
+
 test("check script runs all verification commands", async () => {
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
   const checkCommands = packageJson.scripts.check.split(" && ");
@@ -47,9 +54,16 @@ test("public lavish skill is not marked internal", async () => {
 test("build copies local design assets for published artifact injection", async () => {
   const buildScript = await readFile(new URL("../scripts/build.js", import.meta.url), "utf8");
 
-  assert.match(buildScript, /daisyui\.css/);
-  assert.match(buildScript, /daisyui-themes\.css/);
-  assert.match(buildScript, /tailwindcss-browser\.js/);
+  // The copy loop is driven by DESIGN_LOCAL_ASSET_FILES, so assert the wiring plus the fact
+  // that every declared asset is actually vendored - a name added to the list with no file
+  // behind it would otherwise only surface as a build crash.
+  assert.match(buildScript, /assets\/design/);
+  assert.match(buildScript, /dist\/design/);
+  assert.match(buildScript, /DESIGN_LOCAL_ASSET_FILES/);
+
+  for (const asset of DESIGN_LOCAL_ASSET_FILES) {
+    await readFile(new URL(`../assets/design/${asset}`, import.meta.url));
+  }
 });
 
 test("package metadata matches the GitHub repository used for npm provenance", async () => {
@@ -88,4 +102,22 @@ test("release workflow keeps telemetry env during npm publish prepack", async ()
     workflow,
     /run: npm publish --access public --provenance\n\s+if: \$\{\{ steps\.release\.outputs\.release_created \}\}\n\s+env:\n\s+LAVISH_AXI_UMAMI_HOST: https:\/\/a\.kunchenguid\.com\n\s+LAVISH_AXI_UMAMI_WEBSITE_ID: \$\{\{ vars\.LAVISH_AXI_UMAMI_WEBSITE_ID \}\}/,
   );
+});
+
+test("vendored design assets match the versions the CDN snippets advertise", async () => {
+  const read = (name) => readFile(new URL(`../assets/design/${name}`, import.meta.url), "utf8");
+
+  for (const asset of DESIGN_LOCAL_ASSET_FILES) {
+    const contents = await read(asset);
+    assert.ok(contents.length > 0, `${asset} is vendored and non-empty`);
+  }
+
+  // The browser is told to fetch these exact versions, so the local copies must be the same
+  // release - otherwise a CDN-blocked client silently renders a different build.
+  assert.match(await read("tailwindcss-browser.js"), new RegExp(`"${TAILWIND_BROWSER_VERSION}"`));
+  assert.match(await read(MERMAID_LOCAL_ASSET_FILE), new RegExp(`version:"${MERMAID_VERSION}"`));
+
+  // Mermaid must stay the self-contained UMD bundle: the ESM build resolves ~150 sibling
+  // chunk files that no artifact directory ever receives.
+  assert.doesNotMatch(await read(MERMAID_LOCAL_ASSET_FILE), /from"\.\/chunks/);
 });

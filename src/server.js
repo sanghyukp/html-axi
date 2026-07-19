@@ -46,22 +46,22 @@ const chromeCssUrl = new URL("./chrome.css", import.meta.url);
 const designAssetUrls = {
   "daisyui.css": {
     packaged: new URL("./design/daisyui.css", import.meta.url),
-    source: new URL("../node_modules/daisyui/daisyui.css", import.meta.url),
+    source: new URL("../assets/design/daisyui.css", import.meta.url),
     type: "text/css",
   },
   "daisyui-themes.css": {
     packaged: new URL("./design/daisyui-themes.css", import.meta.url),
-    source: new URL("../node_modules/daisyui/themes.css", import.meta.url),
+    source: new URL("../assets/design/daisyui-themes.css", import.meta.url),
     type: "text/css",
   },
   "tailwindcss-browser.js": {
     packaged: new URL("./design/tailwindcss-browser.js", import.meta.url),
-    source: new URL("../node_modules/@tailwindcss/browser/dist/index.global.js", import.meta.url),
+    source: new URL("../assets/design/tailwindcss-browser.js", import.meta.url),
     type: "application/javascript",
   },
   "mermaid.js": {
     packaged: new URL("./design/mermaid.js", import.meta.url),
-    source: new URL("../node_modules/mermaid/dist/mermaid.min.js", import.meta.url),
+    source: new URL("../assets/design/mermaid.js", import.meta.url),
     type: "application/javascript",
   },
 };
