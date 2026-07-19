@@ -62,7 +62,7 @@ ${home.help[home.help.length - 1]}
 
 ## Workflow
 
-1. Create the HTML artifact (default location \`.lavish/<name>.html\` in the working directory).
+1. Create the HTML artifact (default location \`.ai-dev/<name>.html\` in the working directory).
 2. Run \`npx -y lavish-axi <html-file>\` to open or resume a review session in the browser.
 3. Run \`npx -y lavish-axi poll <html-file>\` to long-poll for the user's annotations, queued prompts, and browser-proven severe layout failures returned as \`layout_warnings\`.
    On the first poll, prefer \`--agent-reply "<one-line summary of what you built and what to review first>"\` so the conversation panel opens with context.

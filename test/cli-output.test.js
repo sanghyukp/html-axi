@@ -106,7 +106,7 @@ test("home output teaches agents when and how to use Lavish Editor", () => {
     "Must be used when the agent needs to collect user input on decisions, choices, preferences, triage, scope, or other structured feedback from within the artifact",
   );
   assert.ok(output.help.some((item) => item.includes("lavish-axi <html-file>")));
-  assert.ok(output.help.some((item) => item.includes("`.lavish/`")));
+  assert.ok(output.help.some((item) => item.includes("`.ai-dev/`")));
   assert.ok(output.help.some((item) => item.includes("lavish-axi playbook <playbook_id>")));
   assert.ok(output.help.some((item) => item.includes("combines several playbooks")));
   assert.ok(output.help.some((item) => item.includes("MUST open each matching playbook")));

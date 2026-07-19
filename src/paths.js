@@ -41,7 +41,7 @@ export function hostForUrl(host) {
 }
 
 export function stateDir() {
-  return process.env.LAVISH_AXI_STATE_DIR || path.join(os.homedir(), ".lavish-axi");
+  return process.env.LAVISH_AXI_STATE_DIR || path.join(os.homedir(), ".ai-dev");
 }
 
 export function stateFile() {

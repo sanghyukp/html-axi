@@ -989,7 +989,7 @@ test("serve rejects fast when the bind host is unavailable", async () => {
 
 test("/artifact serves files copied under the artifact directory", async () => {
   const parent = await mkdtemp(path.join(tmpdir(), "lavish-serve-"));
-  const dir = path.join(parent, ".lavish");
+  const dir = path.join(parent, ".ai-dev");
   const assetDir = path.join(dir, "assets");
   const artifact = path.join(dir, "artifact.html");
   await mkdir(dir);
