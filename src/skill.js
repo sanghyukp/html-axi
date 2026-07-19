@@ -1,5 +1,5 @@
 import { POLL_SEND_AND_END_RULE, POLL_WAKE_PATH_RULES, createHomeOutput } from "./cli.js";
-import { DESIGN_CDN_SNIPPET, designLocalSnippet } from "./design-reference.js";
+import { DESIGN_CDN_SNIPPET, designLocalSnippet, mermaidLocalSnippet } from "./design-reference.js";
 import { PLAYBOOK_ROUTER_HELP } from "./playbooks.js";
 
 // Trigger string Claude Code (and other agents) match against to auto-load the skill.
@@ -100,7 +100,14 @@ completely unstyled and the layout audit stays silent about it:
 ${designLocalSnippet()}
 \`\`\`
 
-Run \`${INVOKE} design\` for the Mermaid diagram snippet, the layout safety CSS, and the DaisyUI component reference.
+\`design --local\` also copies a self-contained Mermaid bundle. With no network, diagrams need this
+instead of the Mermaid CDN snippet - otherwise the page is styled but every diagram silently fails to render:
+
+\`\`\`html
+${mermaidLocalSnippet()}
+\`\`\`
+
+Run \`${INVOKE} design\` for the CDN Mermaid snippet, the layout safety CSS, and the DaisyUI component reference.
 
 ## Playbooks
 

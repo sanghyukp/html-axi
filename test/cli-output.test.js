@@ -53,6 +53,8 @@ import {
   DESIGN_PRIORITY_RULE,
   DESIGN_SYSTEM_HINT,
   designLocalSnippet,
+  MERMAID_LOCAL_ASSET_FILE,
+  mermaidLocalSnippet,
 } from "../src/design-reference.js";
 import { serve } from "../src/server.js";
 
@@ -1847,9 +1849,13 @@ async function startFakeHtmlApp(requests) {
 test("design local snippet references sibling files so a blocked CDN cannot unstyle the artifact", () => {
   const snippet = designLocalSnippet();
 
-  for (const asset of DESIGN_LOCAL_ASSET_FILES) {
+  // Mermaid is copied by --local too, but rides in its own snippet, so the design snippet
+  // must carry exactly the stylesheet/runtime trio and never the diagram bundle.
+  for (const asset of DESIGN_LOCAL_ASSET_FILES.filter((file) => file !== MERMAID_LOCAL_ASSET_FILE)) {
     assert.ok(snippet.includes(`"${asset}"`), `local snippet references ${asset} relatively`);
   }
+  assert.ok(!snippet.includes(MERMAID_LOCAL_ASSET_FILE), "design snippet leaves Mermaid to its own snippet");
+  assert.ok(mermaidLocalSnippet().includes(`"${MERMAID_LOCAL_ASSET_FILE}"`), "Mermaid snippet loads the bundle");
   assert.doesNotMatch(snippet, /cdn\.jsdelivr\.net/, "local snippet never falls back to the CDN");
   assert.doesNotMatch(snippet, /href="\//, "local snippet uses relative hrefs so direct-open still resolves them");
   assert.doesNotMatch(snippet, /src="\//, "local snippet uses relative srcs so direct-open still resolves them");
@@ -1861,6 +1867,8 @@ test("design --local copies the packaged assets next to the artifact and returns
     const output = await designCommand(["--local", "--out", dir]);
 
     assert.ok(output.design.local_snippet, "output carries the local snippet");
+    assert.ok(output.diagram_tooling.local_mermaid_snippet, "output carries the offline Mermaid snippet");
+    assert.doesNotMatch(output.diagram_tooling.local_mermaid_snippet, /cdn\.jsdelivr\.net/);
     assert.equal(output.design.local_assets_dir, dir);
     assert.deepEqual([...output.design.local_assets].sort(), [...DESIGN_LOCAL_ASSET_FILES].sort());
 
@@ -1878,5 +1886,6 @@ test("design without --local keeps the CDN snippet and writes nothing", async ()
 
   assert.ok(output.design.cdn_snippet, "plain design output still carries the CDN snippet");
   assert.equal(output.design.local_snippet, undefined);
+  assert.equal(output.diagram_tooling.local_mermaid_snippet, undefined);
   assert.equal(output.design.local_assets_dir, undefined);
 });

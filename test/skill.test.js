@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createHomeOutput } from "../src/cli.js";
-import { DESIGN_CDN_SNIPPET, designLocalSnippet } from "../src/design-reference.js";
+import { DESIGN_CDN_SNIPPET, designLocalSnippet, mermaidLocalSnippet } from "../src/design-reference.js";
 import { INVOKE, SKILL_DESCRIPTION, createSkillMarkdown } from "../src/skill.js";
 
 function skillCommandText(text) {
@@ -130,4 +130,10 @@ test("skill embeds the design snippets so agents need no second command round-tr
   assert.match(md, /cdn\.jsdelivr\.net\/npm\/@tailwindcss\/browser@/);
   assert.ok(md.includes(designLocalSnippet()), "skill embeds the offline local-asset snippet too");
   assert.match(md, /design --local/, "skill points at --local for a blocked CDN");
+  assert.ok(md.includes(mermaidLocalSnippet()), "skill embeds the offline Mermaid snippet");
+  assert.match(
+    md,
+    /every diagram silently fails to render/,
+    "skill says what breaks when only the CSS is made offline",
+  );
 });

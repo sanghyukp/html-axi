@@ -59,6 +59,11 @@ const designAssetUrls = {
     source: new URL("../node_modules/@tailwindcss/browser/dist/index.global.js", import.meta.url),
     type: "application/javascript",
   },
+  "mermaid.js": {
+    packaged: new URL("./design/mermaid.js", import.meta.url),
+    source: new URL("../node_modules/mermaid/dist/mermaid.min.js", import.meta.url),
+    type: "application/javascript",
+  },
 };
 
 const DEFAULT_IDLE_TIMEOUT_MS = 30 * 60_000;

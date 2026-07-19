@@ -13,6 +13,7 @@ import {
   DESIGN_PRIORITY_RULE,
   DESIGN_SYSTEM_HINT,
   designLocalSnippet,
+  mermaidLocalSnippet,
 } from "./design-reference.js";
 import {
   buildSelfContainedHtml,
@@ -617,10 +618,11 @@ export async function designCommand(args = []) {
   }
 
   output.design.local_snippet = designLocalSnippet();
+  output.diagram_tooling.local_mermaid_snippet = mermaidLocalSnippet();
   output.design.local_assets_dir = targetDir;
   output.design.local_assets = copied;
   output.design.local_note =
-    "Copied the packaged Tailwind/DaisyUI assets next to the artifact. Paste local_snippet into your <head> instead of cdn_snippet: the hrefs are relative, so the artifact renders with no network, keeps working when opened directly from disk, and `ai-dev-axi export` inlines the assets into the standalone copy.";
+    "Copied the packaged Tailwind/DaisyUI and Mermaid assets next to the artifact. Paste local_snippet into your <head> instead of cdn_snippet, and diagram_tooling.local_mermaid_snippet instead of mermaid_cdn_snippet: the paths are relative, so the artifact renders with no network at all, keeps working when opened directly from disk, and `ai-dev-axi export` inlines whichever assets the artifact actually references. Delete mermaid.js if the artifact draws no diagrams.";
   return output;
 }
 

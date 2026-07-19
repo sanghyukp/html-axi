@@ -16,9 +16,19 @@ export const DESIGN_CDN_SNIPPET = `<link rel="stylesheet" href="${DESIGN_CDN_URL
 <link rel="stylesheet" href="${DESIGN_CDN_URLS.daisyuiThemes}" />
 <script src="${DESIGN_CDN_URLS.tailwind}"></script>`;
 
-// The same three assets, packaged. `design --local` copies them next to the artifact so a
-// blocked or reset CDN connection cannot leave the page completely unstyled.
-export const DESIGN_LOCAL_ASSET_FILES = Object.freeze(["daisyui.css", "daisyui-themes.css", "tailwindcss-browser.js"]);
+// Mermaid ships as its own packaged file because it is only needed by artifacts that draw
+// diagrams; `export` inlines just the assets an artifact actually references, so copying it
+// alongside the others never bloats a diagram-free artifact.
+export const MERMAID_LOCAL_ASSET_FILE = "mermaid.js";
+
+// Everything `design --local` copies next to the artifact so a blocked or reset CDN connection
+// cannot leave the page unstyled or its diagrams unrendered.
+export const DESIGN_LOCAL_ASSET_FILES = Object.freeze([
+  "daisyui.css",
+  "daisyui-themes.css",
+  "tailwindcss-browser.js",
+  MERMAID_LOCAL_ASSET_FILE,
+]);
 
 /**
  * Build the <head> snippet for locally-copied design assets.
@@ -33,15 +43,15 @@ export const DESIGN_LOCAL_ASSET_FILES = Object.freeze(["daisyui.css", "daisyui-t
  */
 export function designLocalSnippet(prefix = "") {
   const base = prefix ? `${prefix.replace(/\/+$/, "")}/` : "";
-  const [daisyui, themes, tailwind] = DESIGN_LOCAL_ASSET_FILES;
+  const [daisyui, themes, tailwind] = DESIGN_LOCAL_ASSET_FILES; // Mermaid has its own snippet
   return `<link rel="stylesheet" href="${base}${daisyui}" />
 <link rel="stylesheet" href="${base}${themes}" />
 <script src="${base}${tailwind}"></script>`;
 }
 
-export const MERMAID_CDN_SNIPPET = `<script type="module">
-  import mermaid from "${MERMAID_CDN_URL}";
-
+// The theme-aware render logic, shared by the CDN and packaged-Mermaid snippets. Both bind a
+// local `mermaid`, so the body never cares whether it came from an ESM import or the UMD global.
+const MERMAID_RENDER_BODY = `
   // Render Mermaid in a theme that matches the artifact page, and re-render when
   // the viewer flips the page theme - Mermaid never restyles an already-rendered
   // SVG on its own, so a fixed theme clashes in either light or dark mode.
@@ -143,8 +153,31 @@ export const MERMAID_CDN_SNIPPET = `<script type="module">
     },
     true,
   );
-  darkQuery.addEventListener("change", queueRender);
+  darkQuery.addEventListener("change", queueRender);`;
+
+export const MERMAID_CDN_SNIPPET = `<script type="module">
+  import mermaid from "${MERMAID_CDN_URL}";
+${MERMAID_RENDER_BODY}
 </script>`;
+
+/**
+ * Mermaid snippet for the packaged UMD bundle copied next to the artifact.
+ *
+ * The CDN snippet imports the ESM build, whose dist fans out into ~150 chunk files - far too
+ * much to copy per artifact. The UMD bundle is one self-contained file, so it is what
+ * `design --local` ships, and the module block below just picks it up off the global.
+ *
+ * @param {string} [prefix] optional directory prefix the assets were copied into
+ * @returns {string} copy-pasteable snippet that renders Mermaid with no network
+ */
+export function mermaidLocalSnippet(prefix = "") {
+  const base = prefix ? `${prefix.replace(/\/+$/, "")}/` : "";
+  return `<script src="${base}${MERMAID_LOCAL_ASSET_FILE}"></script>
+<script type="module">
+  const mermaid = window.mermaid;
+${MERMAID_RENDER_BODY}
+</script>`;
+}
 
 export const LAYOUT_SAFETY_CSS_SNIPPET = `<style>
   *, *::before, *::after { box-sizing: border-box; }
