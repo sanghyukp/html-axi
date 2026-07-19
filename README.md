@@ -48,20 +48,21 @@ AI-DEV Editor is an [AXI](https://axi.md), which means -
 Install the AI-DEV skill in the [Agent Skills](https://agentskills.io) format with [`npx skills`](https://github.com/vercel-labs/skills):
 
 ```sh
-npx skills add kunchenguid/ai-dev-axi --skill lavish
+npx skills add sanghyukp/html-axi --skill ai-dev
 ```
 
 That is the entire setup - no npm install needed.
-The skill teaches your agent to run AI-DEV through `npx -y ai-dev-axi`, so the CLI comes along on demand.
+The skill teaches your agent to run AI-DEV through `npx -y git+https://github.com/sanghyukp/html-axi.git`, so the CLI comes along on demand.
+AI-DEV is not published to npm, so every command example installs straight from this repo.
 In restricted subprocess sandboxes, CI, or agent harnesses where `npx -y` exits opaquely, the skill also documents direct installed-copy fallbacks through the local or global npm install path.
 Its frontmatter also includes Hermes Agent metadata, so Hermes-compatible harnesses can categorize and surface it as a first-class productivity skill.
-This installs the public `lavish` skill.
+This installs the public `ai-dev` skill.
 The repository also contains an internal `lavish-design` brand skill for maintainers; default `npx skills add ... --list` and skills.sh discovery hide it unless `INSTALL_INTERNAL_SKILLS=1` is set.
 
 Then, in agents that expose skills as slash commands (Claude Code, for example), invoke it directly:
 
 ```
-/lavish let's discuss our plan here
+/ai-dev let's discuss our plan here
 ```
 
 Or just ask for anything that is easier to grasp visually - a plan, comparison, diagram, table, code view, or report - and the agent loads the skill on its own when it recognizes the task.
@@ -78,7 +79,7 @@ AI-DEV is an AXI, so any capable agent can run the CLI directly with nothing ins
 Just tell your agent:
 
 ```
-Use `npx -y ai-dev-axi` to write a product or technical plan for what we discussed.
+Use `npx -y git+https://github.com/sanghyukp/html-axi.git` to write a product or technical plan for what we discussed.
 ```
 
 ### Session hook
@@ -87,9 +88,16 @@ Want AI-DEV's ambient context - including your live open sessions - fed into eve
 Install the CLI globally and opt into the hook:
 
 ```sh
-npm install -g ai-dev-axi
+git clone https://github.com/sanghyukp/html-axi.git
+cd html-axi && pnpm install --frozen-lockfile && pnpm run build
+npm install -g .
 ai-dev-axi setup hooks
 ```
+
+`npm install -g git+https://github.com/sanghyukp/html-axi.git` does **not** work: npm runs the
+package's `prepare` build without its build dependencies, so the bundle step fails and nothing is
+installed. Clone and build first, as above, or stay on the `npx` path, which installs those
+dependencies itself. The installed command is `ai-dev-axi`.
 
 This installs a `SessionStart` hook for **Claude Code**, **Codex**, **OpenCode**, and **GitHub Copilot CLI** that surfaces open sessions, visualization playbooks, and usage guidance at the start of each session.
 Unlike the skill, the hook also shows your live open sessions, so a fresh agent session can resume an in-flight review.
@@ -99,7 +107,7 @@ Unlike the skill, the hook also shows your live open sessions, so a fresh agent 
 
 ```sh
 git clone https://github.com/sanghyukp/html-axi.git
-cd ai-dev-axi
+cd html-axi
 pnpm install --frozen-lockfile
 pnpm run build
 pnpm link
@@ -206,19 +214,19 @@ For flows, architecture, state, or sequence diagrams, open the diagram playbook 
 
 ### Flags
 
-| Command                  | Flag                  | Description                                                                                                                                                                                                                     |
-| ------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ai-dev-axi <html-file>` | `--no-open`           | Ensure the server/session exists without opening another browser window.                                                                                                                                                        |
-| `ai-dev-axi <html-file>` | `--no-gate`           | Skip the open-time layout curtain for this browser open.                                                                                                                                                                        |
-| `ai-dev-axi <html-file>` | `--reopen`            | Reopen a session the user explicitly ended from the browser; without it, a plain open refuses and explains why instead of reopening uninvited.                                                                                  |
-| `ai-dev-axi update`      | `--check`             | Report current vs latest npm version without installing an update.                                                                                                                                                              |
-| `ai-dev-axi export`      | `--out <path>`        | Write the export to a specific path instead of `<name>.export.html` next to the source.                                                                                                                                         |
-| `ai-dev-axi share`       | `--password <pw>`     | Make the third-party ht-ml.app page private; viewers must supply the password.                                                                                                                                                  |
-| `ai-dev-axi share`       | `--token <t>`         | Attach an optional bearer token (`LAVISH_AXI_HTML_APP_TOKEN`); never required to publish.                                                                                                                                       |
-| `ai-dev-axi poll`        | `--agent-reply "..."` | Show the agent's reply in the existing browser chat before polling again.                                                                                                                                                       |
-| `ai-dev-axi poll`        | `--timeout-ms <ms>`   | Test/debug escape hatch only; agents should normally omit it and leave the long poll running.                                                                                                                                   |
-| `ai-dev-axi stop`        | `--port <port>`       | Shut down a server running on a non-default port.                                                                                                                                                                               |
-| `ai-dev-axi server`      | `--verbose`           | Log session and watcher events to stderr; can also be enabled with `LAVISH_AXI_DEBUG=1`. Detached server output is appended to `~/.ai-dev/server.log` (or `LAVISH_AXI_STATE_DIR/server.log`) for startup and crash diagnostics. |
+| Command                  | Flag                  | Description                                                                                                                                                                                                                                                 |
+| ------------------------ | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ai-dev-axi <html-file>` | `--no-open`           | Ensure the server/session exists without opening another browser window.                                                                                                                                                                                    |
+| `ai-dev-axi <html-file>` | `--no-gate`           | Skip the open-time layout curtain for this browser open.                                                                                                                                                                                                    |
+| `ai-dev-axi <html-file>` | `--reopen`            | Reopen a session the user explicitly ended from the browser; without it, a plain open refuses and explains why instead of reopening uninvited.                                                                                                              |
+| `ai-dev-axi update`      | `--check`             | Report current vs latest npm version without installing an update. Inherited from the AXI SDK and resolves against the npm registry, so it finds nothing for this git-installed package - re-run the `npx` command or `git pull && pnpm run build` instead. |
+| `ai-dev-axi export`      | `--out <path>`        | Write the export to a specific path instead of `<name>.export.html` next to the source.                                                                                                                                                                     |
+| `ai-dev-axi share`       | `--password <pw>`     | Make the third-party ht-ml.app page private; viewers must supply the password.                                                                                                                                                                              |
+| `ai-dev-axi share`       | `--token <t>`         | Attach an optional bearer token (`LAVISH_AXI_HTML_APP_TOKEN`); never required to publish.                                                                                                                                                                   |
+| `ai-dev-axi poll`        | `--agent-reply "..."` | Show the agent's reply in the existing browser chat before polling again.                                                                                                                                                                                   |
+| `ai-dev-axi poll`        | `--timeout-ms <ms>`   | Test/debug escape hatch only; agents should normally omit it and leave the long poll running.                                                                                                                                                               |
+| `ai-dev-axi stop`        | `--port <port>`       | Shut down a server running on a non-default port.                                                                                                                                                                                                           |
+| `ai-dev-axi server`      | `--verbose`           | Log session and watcher events to stderr; can also be enabled with `LAVISH_AXI_DEBUG=1`. Detached server output is appended to `~/.ai-dev/server.log` (or `LAVISH_AXI_STATE_DIR/server.log`) for startup and crash diagnostics.                             |
 
 ## Development
 
