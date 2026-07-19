@@ -1,4 +1,5 @@
 import { POLL_SEND_AND_END_RULE, POLL_WAKE_PATH_RULES, createHomeOutput } from "./cli.js";
+import { DESIGN_CDN_SNIPPET, designLocalSnippet } from "./design-reference.js";
 import { PLAYBOOK_ROUTER_HELP } from "./playbooks.js";
 
 // Trigger string Claude Code (and other agents) match against to auto-load the skill.
@@ -82,6 +83,24 @@ ${POLL_WAKE_PATH_RULES.map((rule) => `   ${skillCommandText(rule)}`).join("\n")}
 ## Visual guidance
 
 ${bullets(home.visual_guidance)}
+
+## Design
+
+Only after the priority order above lands on the AI-DEV fallback, paste this into \`<head>\`:
+
+\`\`\`html
+${DESIGN_CDN_SNIPPET}
+\`\`\`
+
+If the CDN is blocked or unreachable, run \`${INVOKE} design --local\` to copy the same assets next to
+the artifact, then use relative paths instead - a reset CDN connection otherwise leaves the artifact
+completely unstyled and the layout audit stays silent about it:
+
+\`\`\`html
+${designLocalSnippet()}
+\`\`\`
+
+Run \`${INVOKE} design\` for the Mermaid diagram snippet, the layout safety CSS, and the DaisyUI component reference.
 
 ## Playbooks
 

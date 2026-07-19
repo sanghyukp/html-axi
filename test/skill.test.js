@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { createHomeOutput } from "../src/cli.js";
+import { DESIGN_CDN_SNIPPET, designLocalSnippet } from "../src/design-reference.js";
 import { INVOKE, SKILL_DESCRIPTION, createSkillMarkdown } from "../src/skill.js";
 
 function skillCommandText(text) {
@@ -119,4 +120,14 @@ test("createSkillMarkdown documents installed-copy fallback for restricted sandb
   assert.match(md, /`node "\$\(npm root\)\/ai-dev-axi\/dist\/cli\.mjs" <html-file>`/);
   assert.match(md, /`node "\$\(npm root -g\)\/ai-dev-axi\/dist\/cli\.mjs" <html-file>`/);
   assert.match(md, /bare `ai-dev-axi <html-file>` bin/);
+});
+
+test("skill embeds the design snippets so agents need no second command round-trip", () => {
+  const md = createSkillMarkdown();
+
+  assert.ok(md.includes(DESIGN_CDN_SNIPPET), "skill embeds the single-sourced CDN snippet verbatim");
+  assert.match(md, /cdn\.jsdelivr\.net\/npm\/daisyui@/);
+  assert.match(md, /cdn\.jsdelivr\.net\/npm\/@tailwindcss\/browser@/);
+  assert.ok(md.includes(designLocalSnippet()), "skill embeds the offline local-asset snippet too");
+  assert.match(md, /design --local/, "skill points at --local for a blocked CDN");
 });

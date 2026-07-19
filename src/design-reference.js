@@ -12,8 +12,8 @@ export const DESIGN_CDN_URLS = {
 
 export const MERMAID_CDN_URL = `https://cdn.jsdelivr.net/npm/mermaid@${MERMAID_VERSION}/dist/mermaid.esm.min.mjs`;
 
-export const DESIGN_CDN_SNIPPET = `<link rel="stylesheet" href="${DESIGN_CDN_URLS.daisyui}">
-<link rel="stylesheet" href="${DESIGN_CDN_URLS.daisyuiThemes}">
+export const DESIGN_CDN_SNIPPET = `<link rel="stylesheet" href="${DESIGN_CDN_URLS.daisyui}" />
+<link rel="stylesheet" href="${DESIGN_CDN_URLS.daisyuiThemes}" />
 <script src="${DESIGN_CDN_URLS.tailwind}"></script>`;
 
 // The same three assets, packaged. `design --local` copies them next to the artifact so a
@@ -34,8 +34,8 @@ export const DESIGN_LOCAL_ASSET_FILES = Object.freeze(["daisyui.css", "daisyui-t
 export function designLocalSnippet(prefix = "") {
   const base = prefix ? `${prefix.replace(/\/+$/, "")}/` : "";
   const [daisyui, themes, tailwind] = DESIGN_LOCAL_ASSET_FILES;
-  return `<link rel="stylesheet" href="${base}${daisyui}">
-<link rel="stylesheet" href="${base}${themes}">
+  return `<link rel="stylesheet" href="${base}${daisyui}" />
+<link rel="stylesheet" href="${base}${themes}" />
 <script src="${base}${tailwind}"></script>`;
 }
 

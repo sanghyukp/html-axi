@@ -55,6 +55,28 @@ Use ai-dev-axi when the user asks for a visual artifact, HTML explainer, interac
 - Prevent horizontal overflow at every nesting level: nested grid/flex children also need minmax(0, 1fr) tracks and min-width: 0, especially when badges, labels, or status text use wide pixel or monospace fonts; wrap, truncate, or contain long unbreakable text deliberately
 - When the artifact would describe existing or current UI or state, show it instead: capture screenshots of the real pages (run the app read-only if needed) and embed them, rather than explaining the current look in prose; reserve prose for what cannot be shown such as rationale, trade-offs, and open questions
 
+## Design
+
+Only after the priority order above lands on the AI-DEV fallback, paste this into `<head>`:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css" />
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+```
+
+If the CDN is blocked or unreachable, run `npx -y git+https://github.com/sanghyukp/html-axi.git design --local` to copy the same assets next to
+the artifact, then use relative paths instead - a reset CDN connection otherwise leaves the artifact
+completely unstyled and the layout audit stays silent about it:
+
+```html
+<link rel="stylesheet" href="daisyui.css" />
+<link rel="stylesheet" href="daisyui-themes.css" />
+<script src="tailwindcss-browser.js"></script>
+```
+
+Run `npx -y git+https://github.com/sanghyukp/html-axi.git design` for the Mermaid diagram snippet, the layout safety CSS, and the DaisyUI component reference.
+
 ## Playbooks
 
 Run `npx -y git+https://github.com/sanghyukp/html-axi.git playbook <id>` for focused, detailed guidance on any of these.
