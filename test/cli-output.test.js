@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat as fsStat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -19,6 +19,7 @@ import {
   createCopilotCliAmbientContextScript,
   createCopilotCliSessionStartHook,
   createDesignOutput,
+  designCommand,
   createExportOutput,
   createHomeOutput,
   createOpenOutput,
@@ -47,7 +48,12 @@ import {
   telemetryCommandName,
   VERSION,
 } from "../src/cli.js";
-import { DESIGN_PRIORITY_RULE, DESIGN_SYSTEM_HINT } from "../src/design-reference.js";
+import {
+  DESIGN_LOCAL_ASSET_FILES,
+  DESIGN_PRIORITY_RULE,
+  DESIGN_SYSTEM_HINT,
+  designLocalSnippet,
+} from "../src/design-reference.js";
 import { serve } from "../src/server.js";
 
 function setupHooksEnv(homeDir, stateDir) {
@@ -1837,3 +1843,40 @@ async function startFakeHtmlApp(requests) {
     close: () => new Promise((resolve) => server.close(() => resolve())),
   };
 }
+
+test("design local snippet references sibling files so a blocked CDN cannot unstyle the artifact", () => {
+  const snippet = designLocalSnippet();
+
+  for (const asset of DESIGN_LOCAL_ASSET_FILES) {
+    assert.ok(snippet.includes(`"${asset}"`), `local snippet references ${asset} relatively`);
+  }
+  assert.doesNotMatch(snippet, /cdn\.jsdelivr\.net/, "local snippet never falls back to the CDN");
+  assert.doesNotMatch(snippet, /href="\//, "local snippet uses relative hrefs so direct-open still resolves them");
+  assert.doesNotMatch(snippet, /src="\//, "local snippet uses relative srcs so direct-open still resolves them");
+});
+
+test("design --local copies the packaged assets next to the artifact and returns the local snippet", async () => {
+  const dir = await mkdtemp(`${os.tmpdir()}/ai-dev-design-`);
+  try {
+    const output = await designCommand(["--local", "--out", dir]);
+
+    assert.ok(output.design.local_snippet, "output carries the local snippet");
+    assert.equal(output.design.local_assets_dir, dir);
+    assert.deepEqual([...output.design.local_assets].sort(), [...DESIGN_LOCAL_ASSET_FILES].sort());
+
+    for (const asset of DESIGN_LOCAL_ASSET_FILES) {
+      const stat = await fsStat(path.join(dir, asset));
+      assert.ok(stat.size > 0, `${asset} was copied with content`);
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("design without --local keeps the CDN snippet and writes nothing", async () => {
+  const output = await designCommand([]);
+
+  assert.ok(output.design.cdn_snippet, "plain design output still carries the CDN snippet");
+  assert.equal(output.design.local_snippet, undefined);
+  assert.equal(output.design.local_assets_dir, undefined);
+});

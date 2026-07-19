@@ -1,13 +1,19 @@
 import { spawn, spawnSync } from "node:child_process";
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from "node:fs";
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir as mkdirAsync, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { AxiError, installSessionStartHooks, RESERVED_COMMANDS, runAxiCli } from "axi-sdk-js";
 
-import { createDesignOutput, DESIGN_PRIORITY_RULE, DESIGN_SYSTEM_HINT } from "./design-reference.js";
+import {
+  createDesignOutput,
+  DESIGN_LOCAL_ASSET_FILES,
+  DESIGN_PRIORITY_RULE,
+  DESIGN_SYSTEM_HINT,
+  designLocalSnippet,
+} from "./design-reference.js";
 import {
   buildSelfContainedHtml,
   exportFileName,
@@ -587,8 +593,35 @@ async function playbookCommand(args) {
   return createPlaybookOutput(args);
 }
 
-async function designCommand() {
-  return createDesignOutput();
+export async function designCommand(args = []) {
+  const output = createDesignOutput();
+  if (!args.includes("--local")) return output;
+
+  const outIndex = args.indexOf("--out");
+  if (outIndex !== -1 && !args[outIndex + 1]) {
+    throw new AxiError("--out needs a directory", "VALIDATION_ERROR", ["Run `ai-dev-axi design --local --out <dir>`"]);
+  }
+  const targetDir = path.resolve(outIndex === -1 ? process.cwd() : args[outIndex + 1]);
+  await mkdirAsync(targetDir, { recursive: true });
+
+  const copied = [];
+  for (const asset of DESIGN_LOCAL_ASSET_FILES) {
+    const source = resolveDesignAssetPath(`/design/${asset}`);
+    if (!source) {
+      throw new AxiError(`Packaged design asset is missing: ${asset}`, "NOT_FOUND", [
+        "Reinstall ai-dev-axi, or run `npm run build` in a source checkout to regenerate dist/design",
+      ]);
+    }
+    await copyFile(source, path.join(targetDir, asset));
+    copied.push(asset);
+  }
+
+  output.design.local_snippet = designLocalSnippet();
+  output.design.local_assets_dir = targetDir;
+  output.design.local_assets = copied;
+  output.design.local_note =
+    "Copied the packaged Tailwind/DaisyUI assets next to the artifact. Paste local_snippet into your <head> instead of cdn_snippet: the hrefs are relative, so the artifact renders with no network, keeps working when opened directly from disk, and `ai-dev-axi export` inlines the assets into the standalone copy.";
+  return output;
 }
 
 async function setupCommand(args) {
@@ -1055,7 +1088,7 @@ function createCommandHelp({ agent = "generic" } = {}) {
     share: `Usage: ai-dev-axi share <html-file> [--password <pw>] [--token <t>]\n\nPublish the artifact on ht-ml.app (https://ht-ml.app), a third-party hosting service not part of AI-DEV, and print a visitable URL. Shares are PUBLIC by default: anyone with the link can open the page, and it may be indexed or scraped. Pass --password to publish a PRIVATE password-protected page; viewers must supply the password to view. Builds the same local-inlined HTML as 'export' (local assets inlined; remote CDN/font URLs left as links and are not blocked by CSP on ht-ml.app, but still load over the viewer's network), then POSTs it to ht-ml.app's /v1 API. Creating a site needs no account or API key. The response includes the url plus a secret update_key (shown once) for updating or deleting the page later. Set LAVISH_AXI_HTML_APP_TOKEN (or pass --token) to attach an optional bearer token; it is never required. The annotation SDK is never included.\n`,
     stop: `Usage: ai-dev-axi stop [--port <port>]\n\nShut down the background AI-DEV Editor server. The server also stops itself when no browser or poll has been connected for a while (LAVISH_AXI_IDLE_TIMEOUT_MS, default 30m) and immediately when the last session ends with nothing connected.\n`,
     playbook: `Usage: ai-dev-axi playbook [playbook_id]\n\nList focused artifact guidance playbooks, or show one playbook by ID. Known IDs: diagram, table, comparison, plan, code, input, slides.\n\n${PLAYBOOK_ROUTER_HELP}\n\nExamples:\n  ai-dev-axi playbook\n  ai-dev-axi playbook diagram\n  ai-dev-axi playbook input\n`,
-    design: `Usage: ai-dev-axi design\n\nShow a copy-pasteable CDN snippet for Tailwind CSS browser runtime v4 + DaisyUI v5 + themes, Mermaid diagram tooling, a content-to-playbook router, an optional layout safety CSS snippet, plus technical reference for DaisyUI components. ${PLAYBOOK_ROUTER_HELP} AI-DEV artifacts stay portable HTML. This CDN snippet is the design fallback, not the default: inspect the subject project before falling back, and paste the layout safety CSS only when useful for dense nested grid/flex layouts, badges, wide fonts, or local media. ${DESIGN_PRIORITY_RULE}\n`,
+    design: `Usage: ai-dev-axi design [--local] [--out <dir>]\n\nShow a copy-pasteable CDN snippet for Tailwind CSS browser runtime v4 + DaisyUI v5 + themes, Mermaid diagram tooling, a content-to-playbook router, an optional layout safety CSS snippet, plus technical reference for DaisyUI components. ${PLAYBOOK_ROUTER_HELP} AI-DEV artifacts stay portable HTML. This CDN snippet is the design fallback, not the default: inspect the subject project before falling back, and paste the layout safety CSS only when useful for dense nested grid/flex layouts, badges, wide fonts, or local media. ${DESIGN_PRIORITY_RULE} Pass --local to copy the packaged Tailwind/DaisyUI assets next to the artifact (--out <dir>, default the working directory) and get a relative-path snippet instead of the CDN one - use it when the CDN is blocked or offline, since a reset CDN connection otherwise leaves the artifact completely unstyled and the layout audit stays silent about it.\n`,
     setup: `Usage: ai-dev-axi setup hooks\n\nInstall or repair agent SessionStart hooks for ai-dev-axi ambient context in Claude Code, Codex, OpenCode, and GitHub Copilot CLI. Restart your agent session afterward to receive the context.\n`,
     server: `Usage: ai-dev-axi server [--port 4387] [--verbose]\n\nRun the local AI-DEV Editor server. Pass --verbose (or set LAVISH_AXI_DEBUG=1) to log session and watcher events to stderr. Detached server output is appended to ~/.ai-dev/server.log, or LAVISH_AXI_STATE_DIR/server.log when set, for startup and crash diagnostics.\n\nLAVISH_AXI_HOST sets the bind address (default 127.0.0.1; a wildcard 0.0.0.0 or :: binds every interface). Binding beyond loopback exposes an unauthenticated server that can read and serve arbitrary local files to anything that can reach it, so only do so on a trusted network. LAVISH_AXI_LINK_HOST sets the hostname written into generated session links (default: the bind address, or loopback when bound to a wildcard). LAVISH_AXI_NO_OPEN=1 (or --no-open) suppresses the local browser launch.\n`,
   };

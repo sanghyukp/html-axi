@@ -16,6 +16,29 @@ export const DESIGN_CDN_SNIPPET = `<link rel="stylesheet" href="${DESIGN_CDN_URL
 <link rel="stylesheet" href="${DESIGN_CDN_URLS.daisyuiThemes}">
 <script src="${DESIGN_CDN_URLS.tailwind}"></script>`;
 
+// The same three assets, packaged. `design --local` copies them next to the artifact so a
+// blocked or reset CDN connection cannot leave the page completely unstyled.
+export const DESIGN_LOCAL_ASSET_FILES = Object.freeze(["daisyui.css", "daisyui-themes.css", "tailwindcss-browser.js"]);
+
+/**
+ * Build the <head> snippet for locally-copied design assets.
+ *
+ * Hrefs stay relative on purpose: a root-absolute `/design/...` path only resolves while the
+ * AI-DEV server is serving the artifact, so the artifact would break the moment it is opened
+ * directly from disk. Relative sibling paths resolve under the server, over file://, and are
+ * what `ai-dev-axi export` inlines.
+ *
+ * @param {string} [prefix] optional directory prefix the assets were copied into, relative to the artifact
+ * @returns {string} copy-pasteable <head> snippet
+ */
+export function designLocalSnippet(prefix = "") {
+  const base = prefix ? `${prefix.replace(/\/+$/, "")}/` : "";
+  const [daisyui, themes, tailwind] = DESIGN_LOCAL_ASSET_FILES;
+  return `<link rel="stylesheet" href="${base}${daisyui}">
+<link rel="stylesheet" href="${base}${themes}">
+<script src="${base}${tailwind}"></script>`;
+}
+
 export const MERMAID_CDN_SNIPPET = `<script type="module">
   import mermaid from "${MERMAID_CDN_URL}";
 
